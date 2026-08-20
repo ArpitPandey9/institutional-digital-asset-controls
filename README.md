@@ -18,7 +18,7 @@ The current MVP focuses on Base Mainnet and canonical USDC. It is designed to de
 - Modeled expected settlement instructions
 - Direct expected-versus-observed reconciliation
 - `PASS`, `FAIL`, and `UNKNOWN` control outcome types
-- Structured field-level audit result types
+- Structured field-level audit result types and independent field-level control evaluation
 - Python `src/` package layout with deterministic unit-test discovery
 
 ## Evidence and Control Model
@@ -54,7 +54,6 @@ This repository is an engineering MVP and should not be interpreted as a product
 
 The following capabilities are not yet fully implemented:
 
-- Field-by-field control evaluation across all reconciliation dimensions
 - Automatic derivation of `UNKNOWN` from unavailable or insufficient evidence
 - Finality controls
 - Duplicate and replay controls
@@ -83,6 +82,6 @@ python -m unittest discover -s tests -p 'test_*.py' -v
 
 ## Project Status
 
-The current foundation establishes package configuration, deterministic test discovery, normalized on-chain transfer evidence, modeled settlement instructions, direct reconciliation, and auditable result types.
+The current foundation establishes package configuration, deterministic test discovery, normalized on-chain transfer evidence, modeled settlement instructions, direct reconciliation, auditable result types, and independent field-level evaluation across execution, chain, asset, sender, receiver, and amount controls.
 
-Subsequent development will focus on field-level control evaluation and evidence-aware `UNKNOWN` handling before broader control-plane capabilities are introduced.
+Subsequent development will focus on evidence-aware `UNKNOWN` handling and stronger upstream evidence provenance before broader control-plane capabilities are introduced.

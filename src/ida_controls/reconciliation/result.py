@@ -44,7 +44,7 @@ class EvidenceSource(str, Enum):
     """Normalized source of observed evidence used by a control."""
 
     TRANSACTION_RECEIPT_STATUS = "transaction_receipt.status"
-    RPC_CHAIN_ID = "rpc.eth_chainId"
+    OBSERVED_TRANSFER_CHAIN_ID = "observed_transfer.chain_id"
     ERC20_LOG_EMITTER = "erc20_transfer_log.address"
     ERC20_TRANSFER_SENDER = "erc20_transfer_log.Transfer.from"
     ERC20_TRANSFER_RECEIVER = "erc20_transfer_log.Transfer.to"
