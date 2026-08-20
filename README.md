@@ -10,6 +10,8 @@ The current MVP focuses on Base Mainnet and canonical USDC. It is designed to de
 
 - Read-only JSON-RPC connectivity for EVM-compatible chains
 - Base Mainnet chain verification
+- RPC-derived chain identity evidence using `eth_chainId`
+- Independent chain-control evaluation from RPC chain evidence, including when transfer evidence is unavailable
 - Transaction, receipt, block, and log retrieval
 - ERC-20 `Transfer` event identification and decoding
 - Transaction, receipt, and event lineage validation
@@ -21,7 +23,7 @@ The current MVP focuses on Base Mainnet and canonical USDC. It is designed to de
 - Structured field-level audit result types and independent field-level control evaluation
 - Evidence-aware `UNKNOWN` outcomes when receipt or transfer evidence is unavailable
 - Explicit evidence-availability modeling without weakening complete transfer observations
-- Evidence-lineage consistency checks across transaction hash and receipt status
+- Evidence-lineage consistency checks across transaction hash, receipt status, and RPC-derived chain identity
 - Python `src/` package layout with deterministic unit-test discovery
 
 ## Evidence and Control Model
@@ -30,6 +32,7 @@ The observed side is derived from blockchain evidence. The expected side is curr
 
 The implementation preserves explicit distinctions between:
 
+- **RPC chain evidence** - connected network identity obtained through `eth_chainId`
 - **Transaction evidence** - what was submitted to the network
 - **Receipt evidence** - execution status and emitted logs
 - **ERC-20 event evidence** - token-level sender, receiver, and raw transferred amount
@@ -84,6 +87,6 @@ python -m unittest discover -s tests -p 'test_*.py' -v
 
 ## Project Status
 
-The current foundation establishes package configuration, deterministic test discovery, normalized on-chain transfer evidence, modeled settlement instructions, direct reconciliation, independent field-level controls, evidence-aware `UNKNOWN` outcomes, and consistency checks for partial blockchain evidence.
+The current foundation establishes package configuration, deterministic test discovery, normalized on-chain transfer evidence, modeled settlement instructions, direct reconciliation, independent field-level controls, evidence-aware `UNKNOWN` outcomes, RPC-derived chain identity evidence, and consistency checks across partial blockchain evidence.
 
-Subsequent development will focus on stronger upstream RPC evidence provenance, finality, duplicate and replay controls, and exception handling before broader control-plane capabilities are introduced.
+Subsequent development will focus on finality, duplicate and replay controls, stronger evidence-orchestration paths, and exception handling before broader control-plane capabilities are introduced.

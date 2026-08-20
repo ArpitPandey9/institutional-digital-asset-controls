@@ -2,7 +2,10 @@
 
 import unittest
 
-from ida_controls.domain.evidence import ObservedSettlementEvidence
+from ida_controls.domain.evidence import (
+    ObservedSettlementEvidence,
+    RpcChainEvidence,
+)
 from ida_controls.domain.instruction import ExpectedInstruction
 from ida_controls.domain.transfer import ObservedTransfer
 from ida_controls.reconciliation.evidence_controls import (
@@ -220,6 +223,110 @@ class TestEvidenceAwareControls(unittest.TestCase):
                 transfer.transaction_hash,
             )
             self.assertEqual(result.log_index, transfer.log_index)
+
+
+    def test_rpc_chain_evidence_allows_chain_control_without_transfer(self) -> None:
+        modeled_expected = ExpectedInstruction(
+            instruction_id="modeled-instruction-008",
+            chain_id=8453,
+            token_contract="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            token_sender="0x2b4ee3387008e5ff1a9996fc8b48d2fd61389037",
+            token_receiver="0xe9030014f5dae217d0a152f02a043567b16c1abf",
+            amount_raw=5408,
+        )
+
+        evidence = ObservedSettlementEvidence(
+            transaction_hash=(
+                "0x942be0700ca598706f2d86770d6bafaec223ec3b42cc3a72b33f45e4d310f854"
+            ),
+            receipt_status=1,
+            transfer=None,
+            chain_evidence=RpcChainEvidence(
+                chain_id=8453,
+            ),
+        )
+
+        results = evaluate_direct_transfer_evidence(
+            modeled_expected,
+            evidence,
+        )
+
+        by_control = {
+            result.control_name: result
+            for result in results
+        }
+
+        execution = by_control[ControlName.EXECUTION]
+        self.assertEqual(execution.status, ControlStatus.PASS)
+
+        chain = by_control[ControlName.CHAIN]
+        self.assertEqual(chain.status, ControlStatus.PASS)
+        self.assertEqual(chain.reason, ReasonCode.MATCH)
+        self.assertEqual(chain.expected_value, 8453)
+        self.assertEqual(chain.observed_value, 8453)
+        self.assertEqual(
+            chain.evidence_source,
+            EvidenceSource.RPC_CHAIN_ID,
+        )
+
+        receiver = by_control[ControlName.RECEIVER]
+        self.assertEqual(receiver.status, ControlStatus.UNKNOWN)
+        self.assertEqual(
+            receiver.reason,
+            ReasonCode.INSUFFICIENT_EVIDENCE,
+        )
+        self.assertIsNone(receiver.observed_value)
+        self.assertIsNone(receiver.evidence_source)
+
+
+    def test_rpc_chain_mismatch_fails_chain_without_transfer(self) -> None:
+        modeled_expected = ExpectedInstruction(
+            instruction_id="modeled-instruction-009",
+            chain_id=8453,
+            token_contract="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            token_sender="0x2b4ee3387008e5ff1a9996fc8b48d2fd61389037",
+            token_receiver="0xe9030014f5dae217d0a152f02a043567b16c1abf",
+            amount_raw=5408,
+        )
+
+        evidence = ObservedSettlementEvidence(
+            transaction_hash=(
+                "0x942be0700ca598706f2d86770d6bafaec223ec3b42cc3a72b33f45e4d310f854"
+            ),
+            receipt_status=1,
+            transfer=None,
+            chain_evidence=RpcChainEvidence(chain_id=1),
+        )
+
+        results = evaluate_direct_transfer_evidence(
+            modeled_expected,
+            evidence,
+        )
+
+        by_control = {
+            result.control_name: result
+            for result in results
+        }
+
+        chain = by_control[ControlName.CHAIN]
+        self.assertEqual(chain.status, ControlStatus.FAIL)
+        self.assertEqual(
+            chain.reason,
+            ReasonCode.CHAIN_ID_MISMATCH,
+        )
+        self.assertEqual(chain.expected_value, 8453)
+        self.assertEqual(chain.observed_value, 1)
+        self.assertEqual(
+            chain.evidence_source,
+            EvidenceSource.RPC_CHAIN_ID,
+        )
+
+        receiver = by_control[ControlName.RECEIVER]
+        self.assertEqual(receiver.status, ControlStatus.UNKNOWN)
+        self.assertEqual(
+            receiver.reason,
+            ReasonCode.INSUFFICIENT_EVIDENCE,
+        )
 
 
 if __name__ == "__main__":

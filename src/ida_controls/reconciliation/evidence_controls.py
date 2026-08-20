@@ -23,10 +23,45 @@ def evaluate_direct_transfer_evidence(
     """Evaluate settlement controls using the evidence currently available."""
 
     if evidence.transfer is not None:
-        return evaluate_direct_transfer_controls(
-            expected,
-            evidence.transfer,
+        results = list(
+            evaluate_direct_transfer_controls(
+                expected,
+                evidence.transfer,
+            )
         )
+
+        if evidence.chain_evidence is None:
+            return tuple(results)
+
+        chain_matches = (
+            expected.chain_id
+            == evidence.chain_evidence.chain_id
+        )
+
+        for index, result in enumerate(results):
+            if result.control_name == ControlName.CHAIN:
+                results[index] = FieldControlResult(
+                    instruction_id=expected.instruction_id,
+                    control_name=ControlName.CHAIN,
+                    expected_value=expected.chain_id,
+                    observed_value=evidence.chain_evidence.chain_id,
+                    status=(
+                        ControlStatus.PASS
+                        if chain_matches
+                        else ControlStatus.FAIL
+                    ),
+                    reason=(
+                        ReasonCode.MATCH
+                        if chain_matches
+                        else ReasonCode.CHAIN_ID_MISMATCH
+                    ),
+                    evidence_source=EvidenceSource.RPC_CHAIN_ID,
+                    transaction_hash=evidence.transaction_hash,
+                    log_index=evidence.transfer.log_index,
+                )
+                break
+
+        return tuple(results)
 
     if evidence.receipt_status is None:
         execution_status = ControlStatus.UNKNOWN
@@ -55,8 +90,49 @@ def evaluate_direct_transfer_evidence(
         )
     ]
 
+    if evidence.chain_evidence is None:
+        results.append(
+            FieldControlResult(
+                instruction_id=expected.instruction_id,
+                control_name=ControlName.CHAIN,
+                expected_value=expected.chain_id,
+                observed_value=None,
+                status=ControlStatus.UNKNOWN,
+                reason=ReasonCode.INSUFFICIENT_EVIDENCE,
+                evidence_source=None,
+                transaction_hash=evidence.transaction_hash,
+                log_index=None,
+            )
+        )
+    else:
+        chain_matches = (
+            expected.chain_id
+            == evidence.chain_evidence.chain_id
+        )
+
+        results.append(
+            FieldControlResult(
+                instruction_id=expected.instruction_id,
+                control_name=ControlName.CHAIN,
+                expected_value=expected.chain_id,
+                observed_value=evidence.chain_evidence.chain_id,
+                status=(
+                    ControlStatus.PASS
+                    if chain_matches
+                    else ControlStatus.FAIL
+                ),
+                reason=(
+                    ReasonCode.MATCH
+                    if chain_matches
+                    else ReasonCode.CHAIN_ID_MISMATCH
+                ),
+                evidence_source=EvidenceSource.RPC_CHAIN_ID,
+                transaction_hash=evidence.transaction_hash,
+                log_index=None,
+            )
+        )
+
     unavailable_controls = (
-        (ControlName.CHAIN, expected.chain_id),
         (ControlName.ASSET, expected.token_contract),
         (ControlName.SENDER, expected.token_sender),
         (ControlName.RECEIVER, expected.token_receiver),
