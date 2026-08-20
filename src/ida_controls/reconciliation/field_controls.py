@@ -22,17 +22,6 @@ def evaluate_direct_transfer_controls(
     transaction_hash = observed.transaction_hash
     log_index = observed.log_index
 
-    execution_status = (
-        ControlStatus.PASS
-        if observed.execution_succeeded
-        else ControlStatus.FAIL
-    )
-    execution_reason = (
-        ReasonCode.EXECUTION_SUCCEEDED
-        if observed.execution_succeeded
-        else ReasonCode.EXECUTION_REVERTED
-    )
-
     chain_matches = expected.chain_id == observed.chain_id
     asset_matches = (
         expected.token_contract.lower()
@@ -54,8 +43,8 @@ def evaluate_direct_transfer_controls(
             control_name=ControlName.EXECUTION,
             expected_value=1,
             observed_value=observed.receipt_status,
-            status=execution_status,
-            reason=execution_reason,
+            status=ControlStatus.PASS,
+            reason=ReasonCode.EXECUTION_SUCCEEDED,
             evidence_source=EvidenceSource.TRANSACTION_RECEIPT_STATUS,
             transaction_hash=transaction_hash,
             log_index=log_index,

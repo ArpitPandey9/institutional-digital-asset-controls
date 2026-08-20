@@ -44,8 +44,10 @@ class ObservedTransfer:
         if self.token_decimals < 0:
             raise ValueError("token_decimals cannot be negative")
 
-        if self.receipt_status not in (0, 1):
-            raise ValueError("receipt_status must be 0 or 1")
+        if self.receipt_status != 1:
+            raise ValueError(
+                "ObservedTransfer requires successful execution"
+            )
 
     @property
     def amount_token(self) -> Decimal:

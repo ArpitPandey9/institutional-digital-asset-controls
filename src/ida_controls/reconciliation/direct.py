@@ -29,12 +29,6 @@ def reconcile_direct_transfer(
             log_index=observed.log_index,
         )
 
-    if not observed.execution_succeeded:
-        return result(
-            ControlStatus.FAIL,
-            ReasonCode.EXECUTION_REVERTED,
-        )
-
     if expected.chain_id != observed.chain_id:
         return result(
             ControlStatus.FAIL,

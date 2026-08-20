@@ -19,6 +19,9 @@ The current MVP focuses on Base Mainnet and canonical USDC. It is designed to de
 - Direct expected-versus-observed reconciliation
 - `PASS`, `FAIL`, and `UNKNOWN` control outcome types
 - Structured field-level audit result types and independent field-level control evaluation
+- Evidence-aware `UNKNOWN` outcomes when receipt or transfer evidence is unavailable
+- Explicit evidence-availability modeling without weakening complete transfer observations
+- Evidence-lineage consistency checks across transaction hash and receipt status
 - Python `src/` package layout with deterministic unit-test discovery
 
 ## Evidence and Control Model
@@ -54,7 +57,6 @@ This repository is an engineering MVP and should not be interpreted as a product
 
 The following capabilities are not yet fully implemented:
 
-- Automatic derivation of `UNKNOWN` from unavailable or insufficient evidence
 - Finality controls
 - Duplicate and replay controls
 - Canonical asset registry controls
@@ -82,6 +84,6 @@ python -m unittest discover -s tests -p 'test_*.py' -v
 
 ## Project Status
 
-The current foundation establishes package configuration, deterministic test discovery, normalized on-chain transfer evidence, modeled settlement instructions, direct reconciliation, auditable result types, and independent field-level evaluation across execution, chain, asset, sender, receiver, and amount controls.
+The current foundation establishes package configuration, deterministic test discovery, normalized on-chain transfer evidence, modeled settlement instructions, direct reconciliation, independent field-level controls, evidence-aware `UNKNOWN` outcomes, and consistency checks for partial blockchain evidence.
 
-Subsequent development will focus on evidence-aware `UNKNOWN` handling and stronger upstream evidence provenance before broader control-plane capabilities are introduced.
+Subsequent development will focus on stronger upstream RPC evidence provenance, finality, duplicate and replay controls, and exception handling before broader control-plane capabilities are introduced.

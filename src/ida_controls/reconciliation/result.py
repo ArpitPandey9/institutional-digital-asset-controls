@@ -64,7 +64,7 @@ class FieldControlResult:
     observed_value: ControlValue
     status: ControlStatus
     reason: ReasonCode
-    evidence_source: EvidenceSource
+    evidence_source: EvidenceSource | None
 
     transaction_hash: str | None
     log_index: int | None

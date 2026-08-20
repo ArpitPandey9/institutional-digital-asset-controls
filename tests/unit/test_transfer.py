@@ -65,5 +65,26 @@ class TestObservedTransfer(unittest.TestCase):
             )
 
 
+    def test_reverted_receipt_cannot_form_observed_transfer(self) -> None:
+        with self.assertRaisesRegex(
+            ValueError,
+            "ObservedTransfer requires successful execution",
+        ):
+            ObservedTransfer(
+                chain_id=8453,
+                block_number=50058636,
+                block_hash="0x78a85bde41874f70bb5acbba6e6cd234d5f57282c25e1e9853939e9670da9b22",
+                transaction_hash="0x942be0700ca598706f2d86770d6bafaec223ec3b42cc3a72b33f45e4d310f854",
+                log_index=1,
+                token_contract="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                token_sender="0x2b4ee3387008e5ff1a9996fc8b48d2fd61389037",
+                token_receiver="0xe9030014f5dae217d0a152f02a043567b16c1abf",
+                amount_raw=5408,
+                token_decimals=6,
+                tx_submitter="0xa32ccda98ba7529705a059bd2d213da8de10d101",
+                receipt_status=0,
+            )
+
+
 if __name__ == "__main__":
     unittest.main()
