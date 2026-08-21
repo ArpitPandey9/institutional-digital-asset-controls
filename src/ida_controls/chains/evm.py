@@ -36,6 +36,31 @@ def get_block(
     return block
 
 
+def get_block_by_tag(
+    rpc_url: str,
+    tag: str,
+    full_transactions: bool = True,
+) -> dict:
+    """Return a block by an Ethereum JSON-RPC block tag."""
+    allowed_tags = {"latest", "safe", "finalized"}
+
+    if tag not in allowed_tags:
+        raise ValueError(
+            f"Unsupported block tag: {tag}"
+        )
+
+    block = rpc_call(
+        rpc_url,
+        "eth_getBlockByNumber",
+        [tag, full_transactions],
+    )
+
+    if block is None:
+        raise RuntimeError(f"Block not found for tag: {tag}")
+
+    return block
+
+
 def get_transaction_receipt(rpc_url: str, tx_hash: str) -> dict | None:
     """Return the execution receipt for a transaction."""
     return rpc_call(

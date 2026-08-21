@@ -13,6 +13,9 @@ The current MVP focuses on Base Mainnet and canonical USDC. It is designed to de
 - RPC-derived chain identity evidence using `eth_chainId`
 - Independent chain-control evaluation from RPC chain evidence, including when transfer evidence is unavailable
 - Transaction, receipt, block, and log retrieval
+- Protocol-aware `safe` and `finalized` block retrieval through JSON-RPC
+- Canonical block-hash verification for observed settlement evidence
+- Finality controls with explicit `PASS`, `FAIL`, and `UNKNOWN` outcomes
 - ERC-20 `Transfer` event identification and decoding
 - Transaction, receipt, and event lineage validation
 - Immutable normalization of observed token-transfer evidence
@@ -33,6 +36,7 @@ The observed side is derived from blockchain evidence. The expected side is curr
 The implementation preserves explicit distinctions between:
 
 - **RPC chain evidence** - connected network identity obtained through `eth_chainId`
+- **Finality evidence** - canonical block identity plus protocol `safe` and `finalized` heads
 - **Transaction evidence** - what was submitted to the network
 - **Receipt evidence** - execution status and emitted logs
 - **ERC-20 event evidence** - token-level sender, receiver, and raw transferred amount
@@ -54,13 +58,14 @@ The control model therefore separates:
 
 Unavailable evidence is not treated as evidence of either a match or a mismatch.
 
+Finality evaluation separately verifies that the originally observed block remains canonical and that the transaction block has entered the RPC-reported `finalized` range. A canonical transaction that has not yet reached that range fails the current finality condition with `FINALITY_NOT_REACHED`; operationally, this represents pending finality rather than a permanent settlement mismatch.
+
 ## Current Limitations
 
 This repository is an engineering MVP and should not be interpreted as a production settlement platform.
 
 The following capabilities are not yet fully implemented:
 
-- Finality controls
 - Duplicate and replay controls
 - Canonical asset registry controls
 - Exception workflow and case management
@@ -87,6 +92,6 @@ python -m unittest discover -s tests -p 'test_*.py' -v
 
 ## Project Status
 
-The current foundation establishes package configuration, deterministic test discovery, normalized on-chain transfer evidence, modeled settlement instructions, direct reconciliation, independent field-level controls, evidence-aware `UNKNOWN` outcomes, RPC-derived chain identity evidence, and consistency checks across partial blockchain evidence.
+The current foundation establishes package configuration, deterministic test discovery, normalized on-chain transfer evidence, modeled settlement instructions, direct reconciliation, independent field-level controls, evidence-aware `UNKNOWN` outcomes, RPC-derived chain identity evidence, protocol-aware finality evidence, canonical block verification, and finality control outcomes.
 
-Subsequent development will focus on finality, duplicate and replay controls, stronger evidence-orchestration paths, and exception handling before broader control-plane capabilities are introduced.
+Subsequent development will focus on duplicate and replay controls, stronger evidence-orchestration paths, exception handling, and broader audit capabilities before additional control-plane functionality is introduced.
