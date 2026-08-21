@@ -16,6 +16,10 @@ The current MVP focuses on Base Mainnet and canonical USDC. It is designed to de
 - Protocol-aware `safe` and `finalized` block retrieval through JSON-RPC
 - Canonical block-hash verification for observed settlement evidence
 - Finality controls with explicit `PASS`, `FAIL`, and `UNKNOWN` outcomes
+- Duplicate and replay controls using independent instruction-uniqueness and transfer-uniqueness evaluation
+- Historical settlement-consumption matching using exact transfer identity: chain ID, transaction hash, and log index
+- Auditable preservation of all matched prior consumption records
+- Evidence-aware `UNKNOWN` uniqueness outcomes when processing history is unavailable
 - ERC-20 `Transfer` event identification and decoding
 - Transaction, receipt, and event lineage validation
 - Immutable normalization of observed token-transfer evidence
@@ -41,6 +45,7 @@ The implementation preserves explicit distinctions between:
 - **Receipt evidence** - execution status and emitted logs
 - **ERC-20 event evidence** - token-level sender, receiver, and raw transferred amount
 - **Expected instruction** - the modeled settlement terms against which observed evidence is evaluated
+- **Processing-history evidence** - prior instruction-to-transfer consumption records used to evaluate settlement uniqueness
 
 The transaction submitter (`tx.from`) is not assumed to be the ERC-20 token sender. Sender and receiver controls use evidence derived from the decoded `Transfer` event.
 
@@ -58,6 +63,8 @@ The control model therefore separates:
 
 Unavailable evidence is not treated as evidence of either a match or a mismatch.
 
+Duplicate and replay evaluation applies two independent controls. Instruction uniqueness checks whether the modeled instruction has already been consumed, while transfer uniqueness checks whether the exact on-chain transfer identity `(chain_id, transaction_hash, log_index)` has already been consumed. A previously unseen instruction and transfer pass their respective uniqueness controls. Reuse produces a failed uniqueness control, while unavailable processing history produces `UNKNOWN`. All matching historical records are retained in the control result for auditability.
+
 Finality evaluation separately verifies that the originally observed block remains canonical and that the transaction block has entered the RPC-reported `finalized` range. A canonical transaction that has not yet reached that range fails the current finality condition with `FINALITY_NOT_REACHED`; operationally, this represents pending finality rather than a permanent settlement mismatch.
 
 ## Current Limitations
@@ -66,7 +73,7 @@ This repository is an engineering MVP and should not be interpreted as a product
 
 The following capabilities are not yet fully implemented:
 
-- Duplicate and replay controls
+- Persistent and atomic duplicate/replay enforcement across concurrent processing
 - Canonical asset registry controls
 - Exception workflow and case management
 - Persistent audit storage
@@ -92,6 +99,8 @@ python -m unittest discover -s tests -p 'test_*.py' -v
 
 ## Project Status
 
-The current foundation establishes package configuration, deterministic test discovery, normalized on-chain transfer evidence, modeled settlement instructions, direct reconciliation, independent field-level controls, evidence-aware `UNKNOWN` outcomes, RPC-derived chain identity evidence, protocol-aware finality evidence, canonical block verification, and finality control outcomes.
+The current foundation establishes package configuration, deterministic test discovery, normalized on-chain transfer evidence, modeled settlement instructions, direct reconciliation, independent field-level controls, evidence-aware `UNKNOWN` outcomes, RPC-derived chain identity evidence, protocol-aware finality evidence, canonical block verification, finality control outcomes, and duplicate/replay detection through independent instruction- and transfer-uniqueness controls.
 
-Subsequent development will focus on duplicate and replay controls, stronger evidence-orchestration paths, exception handling, and broader audit capabilities before additional control-plane functionality is introduced.
+Duplicate/replay evaluation currently operates against supplied processing-history records. Production-grade prevention would additionally require persistent, atomic storage and concurrency-safe uniqueness enforcement.
+
+Subsequent development will focus on stronger evidence-orchestration paths, exception handling, canonical asset controls, and broader audit capabilities before additional control-plane functionality is introduced.
