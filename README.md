@@ -36,6 +36,10 @@ The current MVP focuses on Base Mainnet and canonical USDC. It is designed to de
 - Evidence-aware `UNKNOWN` outcomes when receipt or transfer evidence is unavailable
 - Explicit evidence-availability modeling without weakening complete transfer observations
 - Evidence-lineage consistency checks across transaction hash, receipt status, and RPC-derived chain identity
+- Settlement-control orchestration across field reconciliation, finality, duplicate/replay, and canonical asset controls
+- One auditable settlement-control bundle containing normalized control findings alongside detailed underlying control results
+- Evidence-dependent orchestration that preserves independently evaluable findings when other evidence is unavailable
+- No orchestrator-level aggregate settlement status; business disposition is intentionally kept separate from control findings
 - Python `src/` package layout with deterministic unit-test discovery
 
 ## Evidence and Control Model
@@ -77,6 +81,12 @@ Canonical asset validation is intentionally independent from expected-versus-obs
 
 A matching expected and observed contract therefore does not, by itself, establish canonical asset validity. Missing reference evidence produces `UNKNOWN`. A missing asset record produces `FAIL` only when the supplied registry is explicitly modeled as an authoritative complete allowlist.
 
+Settlement-control orchestration composes the independent control outcomes into a single auditable bundle without replacing their underlying evidence or result types. The bundle preserves normalized findings for review while retaining detailed field, finality, duplicate/replay, and canonical-asset results where those controls can be evaluated.
+
+Evidence dependencies remain control-specific. For example, when transfer evidence is unavailable but processing history is available, instruction uniqueness can still be evaluated independently, while transfer uniqueness, finality, and canonical-asset validation remain `UNKNOWN` where their required observed evidence is absent.
+
+The orchestrator does not calculate an overall settlement `PASS`, `FAIL`, or `UNKNOWN` disposition. Aggregate business disposition is intentionally reserved for a separate policy layer so that control findings remain distinct from institution-specific decision rules.
+
 ## Canonical Asset Reference
 
 The repository currently includes a deliberately narrow reference definition for Circle-issued USDC on Base Mainnet:
@@ -98,6 +108,7 @@ The following capabilities are not yet fully implemented:
 
 - Persistent and atomic duplicate/replay enforcement across concurrent processing
 - Governed production asset-master integration and complete institutional allowlist management
+- Policy-driven overall settlement disposition
 - Exception workflow and case management
 - Persistent audit storage
 - Sanctions screening
@@ -122,8 +133,8 @@ python -m unittest discover -s tests -p 'test_*.py' -v
 
 ## Project Status
 
-The current foundation establishes package configuration, deterministic test discovery, normalized on-chain transfer evidence, modeled settlement instructions, direct reconciliation, independent field-level controls, evidence-aware `UNKNOWN` outcomes, RPC-derived chain identity evidence, protocol-aware finality evidence, canonical block verification, finality control outcomes, duplicate/replay detection through independent instruction- and transfer-uniqueness controls, and independent canonical asset validation against trusted reference data.
+The current foundation establishes package configuration, deterministic test discovery, normalized on-chain transfer evidence, modeled settlement instructions, direct reconciliation, independent field-level controls, evidence-aware `UNKNOWN` outcomes, RPC-derived chain identity evidence, protocol-aware finality evidence, canonical block verification, finality control outcomes, duplicate/replay detection through independent instruction- and transfer-uniqueness controls, independent canonical asset validation against trusted reference data, and settlement-control orchestration into one auditable bundle of independent findings and detailed results.
 
-Duplicate/replay evaluation currently operates against supplied processing-history records. Production-grade prevention would additionally require persistent, atomic storage and concurrency-safe uniqueness enforcement.
+Duplicate/replay evaluation currently operates against supplied processing-history records. Instruction uniqueness remains independently evaluable when transfer evidence is unavailable, while transfer uniqueness remains `UNKNOWN` without an exact observed transfer identity. Production-grade prevention would additionally require persistent, atomic storage and concurrency-safe uniqueness enforcement.
 
-Subsequent development will focus on stronger evidence-orchestration paths, exception handling, production-grade reference-data governance, and broader audit capabilities before additional control-plane functionality is introduced.
+The current orchestrator intentionally does not assign an aggregate business disposition. Subsequent development will focus on exception handling, explicit policy and disposition rules, production-grade reference-data governance, and broader audit capabilities before additional control-plane functionality is introduced.

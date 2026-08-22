@@ -212,6 +212,87 @@ class TestDuplicateReplayControls(unittest.TestCase):
             )
             self.assertEqual(result.matched_records, ())
 
+    def test_missing_transfer_still_evaluates_instruction_uniqueness(self) -> None:
+        prior = self.record(
+            "INST-1950",
+            "0xprior",
+            1,
+        )
+
+        results = evaluate_duplicate_replay_controls(
+            self.make_instruction("INST-1950"),
+            observed=None,
+            history=(prior,),
+        )
+
+        by_control = self.by_control(results)
+
+        instruction = by_control[
+            ControlName.INSTRUCTION_UNIQUENESS
+        ]
+        transfer = by_control[
+            ControlName.TRANSFER_UNIQUENESS
+        ]
+
+        self.assertEqual(
+            instruction.status,
+            ControlStatus.FAIL,
+        )
+        self.assertEqual(
+            instruction.reason,
+            ReasonCode.INSTRUCTION_ALREADY_CONSUMED,
+        )
+        self.assertEqual(
+            instruction.matched_records,
+            (prior,),
+        )
+
+        self.assertEqual(
+            transfer.status,
+            ControlStatus.UNKNOWN,
+        )
+        self.assertEqual(
+            transfer.reason,
+            ReasonCode.INSUFFICIENT_EVIDENCE,
+        )
+        self.assertEqual(
+            transfer.matched_records,
+            (),
+        )
+        self.assertIsNone(transfer.chain_id)
+        self.assertIsNone(transfer.transaction_hash)
+        self.assertIsNone(transfer.log_index)
+
+    def test_missing_transfer_with_empty_history_passes_instruction_only(self) -> None:
+        results = evaluate_duplicate_replay_controls(
+            self.make_instruction("INST-1960"),
+            observed=None,
+            history=(),
+        )
+
+        by_control = self.by_control(results)
+
+        self.assertEqual(
+            by_control[
+                ControlName.INSTRUCTION_UNIQUENESS
+            ].status,
+            ControlStatus.PASS,
+        )
+        self.assertEqual(
+            by_control[
+                ControlName.INSTRUCTION_UNIQUENESS
+            ].reason,
+            ReasonCode.NO_PRIOR_INSTRUCTION_CONSUMPTION,
+        )
+
+        self.assertEqual(
+            by_control[
+                ControlName.TRANSFER_UNIQUENESS
+            ].status,
+            ControlStatus.UNKNOWN,
+        )
+
+
     def test_same_transaction_hash_with_different_log_index_is_not_same_transfer(
         self,
     ) -> None:
