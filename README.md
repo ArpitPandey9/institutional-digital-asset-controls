@@ -21,6 +21,11 @@ The current MVP focuses on Base Mainnet and canonical USDC. It is designed to de
 - Auditable preservation of all matched prior consumption records
 - Evidence-aware `UNKNOWN` uniqueness outcomes when processing history is unavailable
 - ERC-20 `Transfer` event identification and decoding
+- Canonical asset validation against independent trusted reference data
+- Business-level asset identity separated from token-contract identity
+- Version-controlled Base Mainnet USDC reference sourced from Circle's official contract documentation
+- Chain-scoped canonical asset evaluation with explicit `PASS`, `FAIL`, and `UNKNOWN` outcomes
+- Partial-registry semantics that avoid treating missing reference coverage as evidence of non-approval
 - Transaction, receipt, and event lineage validation
 - Immutable normalization of observed token-transfer evidence
 - Exact raw-unit token accounting without floating-point source-of-truth calculations
@@ -46,6 +51,7 @@ The implementation preserves explicit distinctions between:
 - **ERC-20 event evidence** - token-level sender, receiver, and raw transferred amount
 - **Expected instruction** - the modeled settlement terms against which observed evidence is evaluated
 - **Processing-history evidence** - prior instruction-to-transfer consumption records used to evaluate settlement uniqueness
+- **Trusted asset-reference evidence** - independently maintained asset identity, chain deployment, contract address, decimals, issuer, and source provenance used for canonical asset validation
 
 The transaction submitter (`tx.from`) is not assumed to be the ERC-20 token sender. Sender and receiver controls use evidence derived from the decoded `Transfer` event.
 
@@ -67,6 +73,23 @@ Duplicate and replay evaluation applies two independent controls. Instruction un
 
 Finality evaluation separately verifies that the originally observed block remains canonical and that the transaction block has entered the RPC-reported `finalized` range. A canonical transaction that has not yet reached that range fails the current finality condition with `FINALITY_NOT_REACHED`; operationally, this represents pending finality rather than a permanent settlement mismatch.
 
+Canonical asset validation is intentionally independent from expected-versus-observed contract reconciliation. The expected instruction carries a business-level `asset_id`; the control then evaluates the token contract actually observed on the executed chain against trusted reference data for that requested asset. This allows the engine to distinguish an instruction that was faithfully executed from an execution that used the correct approved asset.
+
+A matching expected and observed contract therefore does not, by itself, establish canonical asset validity. Missing reference evidence produces `UNKNOWN`. A missing asset record produces `FAIL` only when the supplied registry is explicitly modeled as an authoritative complete allowlist.
+
+## Canonical Asset Reference
+
+The repository currently includes a deliberately narrow reference definition for Circle-issued USDC on Base Mainnet:
+
+- Asset: `USDC`
+- Chain ID: `8453`
+- Contract: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
+- Decimals: `6`
+- Issuer: Circle
+- Authoritative source: https://developers.circle.com/stablecoins/usdc-contract-addresses
+
+This version-controlled reference preserves provenance for the current MVP. It is not represented as a complete institutional asset allowlist. A production implementation would normally consume a governed, reviewed, versioned institutional asset master maintained from authoritative issuer, protocol, or chain sources.
+
 ## Current Limitations
 
 This repository is an engineering MVP and should not be interpreted as a production settlement platform.
@@ -74,7 +97,7 @@ This repository is an engineering MVP and should not be interpreted as a product
 The following capabilities are not yet fully implemented:
 
 - Persistent and atomic duplicate/replay enforcement across concurrent processing
-- Canonical asset registry controls
+- Governed production asset-master integration and complete institutional allowlist management
 - Exception workflow and case management
 - Persistent audit storage
 - Sanctions screening
@@ -99,8 +122,8 @@ python -m unittest discover -s tests -p 'test_*.py' -v
 
 ## Project Status
 
-The current foundation establishes package configuration, deterministic test discovery, normalized on-chain transfer evidence, modeled settlement instructions, direct reconciliation, independent field-level controls, evidence-aware `UNKNOWN` outcomes, RPC-derived chain identity evidence, protocol-aware finality evidence, canonical block verification, finality control outcomes, and duplicate/replay detection through independent instruction- and transfer-uniqueness controls.
+The current foundation establishes package configuration, deterministic test discovery, normalized on-chain transfer evidence, modeled settlement instructions, direct reconciliation, independent field-level controls, evidence-aware `UNKNOWN` outcomes, RPC-derived chain identity evidence, protocol-aware finality evidence, canonical block verification, finality control outcomes, duplicate/replay detection through independent instruction- and transfer-uniqueness controls, and independent canonical asset validation against trusted reference data.
 
 Duplicate/replay evaluation currently operates against supplied processing-history records. Production-grade prevention would additionally require persistent, atomic storage and concurrency-safe uniqueness enforcement.
 
-Subsequent development will focus on stronger evidence-orchestration paths, exception handling, canonical asset controls, and broader audit capabilities before additional control-plane functionality is introduced.
+Subsequent development will focus on stronger evidence-orchestration paths, exception handling, production-grade reference-data governance, and broader audit capabilities before additional control-plane functionality is introduced.

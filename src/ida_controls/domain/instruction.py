@@ -19,6 +19,8 @@ class ExpectedInstruction:
 
     amount_raw: int
 
+    asset_id: str | None = None
+
     def __post_init__(self) -> None:
         """Validate basic instruction invariants."""
         if not self.instruction_id:
@@ -29,3 +31,6 @@ class ExpectedInstruction:
 
         if self.amount_raw < 0:
             raise ValueError("amount_raw cannot be negative")
+
+        if self.asset_id is not None and not self.asset_id.strip():
+            raise ValueError("asset_id cannot be empty when provided")
