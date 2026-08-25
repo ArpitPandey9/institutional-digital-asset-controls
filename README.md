@@ -6,6 +6,8 @@ This repository implements an evidence-based control workflow for reconciling a 
 
 The current MVP focuses on Base Mainnet and canonical USDC. It is designed to demonstrate how blockchain evidence can be normalized, validated, reconciled, and translated into auditable control outcomes while maintaining a clear distinction between transaction execution and settlement correctness.
 
+**Verification status:** 64 unit tests passing.
+
 ## Current Capabilities
 
 - Read-only JSON-RPC connectivity for EVM-compatible chains
