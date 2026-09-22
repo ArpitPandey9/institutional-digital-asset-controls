@@ -6,7 +6,7 @@ This repository implements an evidence-based control workflow for reconciling a 
 
 The current MVP focuses on Base Mainnet and canonical USDC. It is designed to demonstrate how blockchain evidence can be normalized, validated, reconciled, and translated into auditable control outcomes while maintaining a clear distinction between transaction execution and settlement correctness.
 
-**Verification status:** 64 unit tests passing.
+**Verification status:** 70 automated tests passing (64 unit tests + 6 headless Streamlit integration tests).
 
 ## Current Capabilities
 
@@ -42,7 +42,10 @@ The current MVP focuses on Base Mainnet and canonical USDC. It is designed to de
 - One auditable settlement-control bundle containing normalized control findings alongside detailed underlying control results
 - Evidence-dependent orchestration that preserves independently evaluable findings when other evidence is unavailable
 - No orchestrator-level aggregate settlement status; business disposition is intentionally kept separate from control findings
-- Python `src/` package layout with deterministic unit-test discovery
+- Python `src/` package layout with deterministic test discovery
+- Streamlit control-review dashboard backed by the existing settlement-control orchestration layer
+- Six synthetic demonstration scenarios covering exact match, receiver mismatch, pending finality, duplicate/replay, partial evidence, and non-canonical asset validation
+- Headless Streamlit integration coverage across all six demonstration scenarios
 
 ## Evidence and Control Model
 
@@ -102,6 +105,14 @@ The repository currently includes a deliberately narrow reference definition for
 
 This version-controlled reference preserves provenance for the current MVP. It is not represented as a complete institutional asset allowlist. A production implementation would normally consume a governed, reviewed, versioned institutional asset master maintained from authoritative issuer, protocol, or chain sources.
 
+## Demonstration Dashboard
+
+The repository includes a Streamlit review interface for the existing settlement-control engine. The dashboard calls the same orchestration layer used by the underlying control model; it does not reimplement control logic.
+
+The six included scenarios use explicitly modeled synthetic inputs only and do not represent employer, client, custody, bank, or production settlement data.
+
+The interface presents independent `PASS`, `FAIL`, and `UNKNOWN` findings and intentionally does not create an overall institutional settlement disposition.
+
 ## Current Limitations
 
 This repository is an engineering MVP and should not be interpreted as a production settlement platform.
@@ -121,16 +132,28 @@ The current direct-transfer reconciliation path also does not treat routed or mu
 
 ## Development
 
-Install the package in editable mode:
+Install the core package in editable mode:
 
 ```bash
 python -m pip install -e .
 ```
 
-Run the current test suite:
+Install the dashboard dependencies:
 
 ```bash
-python -m unittest discover -s tests -p 'test_*.py' -v
+python -m pip install -e ".[dashboard]"
+```
+
+Run the Streamlit demonstration dashboard:
+
+```bash
+streamlit run dashboard/app.py
+```
+
+Run the complete automated test suite:
+
+```bash
+PYTHONPATH=src python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
 ## Project Status
